@@ -7,19 +7,14 @@ const $doc = $(document);
 const $body = $(document.body);
 const modalDataAttr = 'umodal-id';
 const triggerDataAttr = `[data-${modalDataAttr}]`;
-const modalContentClassName = '.umodal-content';
-const modalFooterClassName = '.umodal-footer';
-const modalHeaderClassName = '.umodal-header';
-const overlayClassName = '.overlay-umodal';
-const scrollClassName = 'scroll-content';
-const showClassName = 'show';
+const modalContentClassName = '.unfoldModal-content';
+const modalFooterClassName = '.unfoldModal-footer';
+const modalHeaderClassName = '.unfoldModal-header';
+const overlayClassName = '.unfoldModal-overlay';
+const scrollClassName = 'unfoldModal-content--scroll';
+const showClassName = 'is-visible';
 const closeModalClassName = '.close-modal';
 let $overlay;
-let id = 0;
-
-function generateId () {
-    return id++;
-}
 
 const noop = () => undefined;
 const isFunction = fn => typeof fn === 'function';
@@ -85,7 +80,7 @@ class Unfold {
         this.$modal = $(elementId);
         this.$modal.scrollPosition = 0;
         this.identifier = elementId;
-        this.eventIdentifier = 'unfold_' + generateId();
+        this.eventIdentifier = 'unfold_' + elementId;
         this.reset();
     }
 
@@ -152,18 +147,18 @@ const unfoldFactory = {
     create (elemId, ...triggers) {
         let modal = this.get(elemId);
 
-        if(!this._triggerModalMap[elemId]) this._triggerModalMap[elemId] = [];
+        if (!this._triggerModalMap[elemId]) this._triggerModalMap[elemId] = [];
 
-        if(!modal) {
+        if (!modal) {
             modal = new Unfold(elemId);
             this.modals.push(modal);
         }
 
         triggers && triggers.filter(t => this._triggerModalMap[elemId].indexOf(t) === -1)
-        .forEach((trigger) => {
-            $(trigger).on(`click.${modal.eventIdentifier}`, () => modal.open());
-            this._triggerModalMap[elemId].push(trigger);
-        });
+            .forEach((trigger) => {
+                $(trigger).on(`click.${modal.eventIdentifier}`, () => modal.open());
+                this._triggerModalMap[elemId].push(trigger);
+            });
         
         return modal;
     },
