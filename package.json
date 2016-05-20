@@ -1,0 +1,55 @@
+{
+  "name": "@uship/unfold",
+  "version": "0.0.0",
+  "description": "Modal dialog for UI",
+  "main": "lib/index.js",
+  "files": [
+    "lib",
+    "dist"
+  ],
+  "scripts": {
+    "test": "karma start",
+    "dist": "webpack src/index.js dist/unfold.min.js -p && webpack src/index.js dist/unfold.js -d",
+    "lib": "babel src --out-dir lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uship/unfold.git"
+  },
+  "keywords": [
+    "ui",
+    "modal",
+    "react",
+    "dialog"
+  ],
+  "author": "Maneeshpal Bandlamudi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/uship/unfold/issues"
+  },
+  "homepage": "https://github.com/uship/unfold#readme",
+  "devDependencies": {
+    "babel-cli": "^6.9.0",
+    "babel-core": "^6.9.0",
+    "babel-loader": "^6.2.4",
+    "babel-plugin-transform-object-rest-spread": "^6.8.0",
+    "babel-preset-es2015": "^6.9.0",
+    "chai": "^3.5.0",
+    "eslint": "^2.10.2",
+    "isparta": "^4.0.0",
+    "isparta-loader": "^2.0.0",
+    "karma": "^0.13.22",
+    "karma-chai": "^0.1.0",
+    "karma-chrome-launcher": "^1.0.1",
+    "karma-coverage": "^1.0.0",
+    "karma-mocha": "^1.0.1",
+    "karma-mocha-reporter": "^2.0.3",
+    "karma-sourcemap-loader": "^0.3.7",
+    "karma-webpack": "^1.7.0",
+    "mocha": "^2.4.5",
+    "webpack": "^1.13.0"
+  },
+  "dependencies": {
+    "lodash.debounce": "^4.0.6"
+  }
+}
