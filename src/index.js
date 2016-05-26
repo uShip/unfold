@@ -19,44 +19,80 @@ let $overlay;
 const noop = () => undefined;
 const isFunction = fn => typeof fn === 'function';
 
+// function positionModal ($modal) {
+//     const $modalContent = $($modal.find(modalContentClassName)[0]);
+
+//     $body.removeClass('fixed');
+//     $body.css('top', 'auto');  
+//     $modalContent.css('max-height', 'none'); 
+//     $modalContent.removeClass(scrollClassName);
+//     $modal.css('top', 0);
+//     $modal.css('left', 0);
+
+//     const { height: viewHeight, width: viewWidth } = getViewportDimensions(window, document);
+//     const modalHeight = $modal.outerHeight(true);
+//     const modalWidth = $modal.outerWidth(true);
+    
+//     if (window.matchMedia('(min-width: 768px)')) {
+//         const top = (modalHeight <= viewHeight)
+//             ? (((viewHeight - modalHeight) / 2) + $doc.scrollTop()) + 'px'
+//             : $window.scrollTop();
+
+//         const left = (((viewWidth - modalWidth) / 2) - $modal.offset().left) + 'px';
+
+//         $modal.css({ left, top });
+//     } else {
+//         const footerHeight = (window.matchMedia('(min-height: 321px)'))
+//             ? $modal.find(modalFooterClassName).outerHeight(true) || 0
+//             : 0;
+
+//         const headerHeight = $modal.find(modalHeaderClassName).outerHeight(true) || 0;
+
+//         $modalContent
+//             .css('max-height', (viewHeight - footerHeight - headerHeight) + 'px')
+//             .addClass(scrollClassName);
+
+//         $body.addClass('fixed').css('top', ($modal.scrollPosition * -1));
+
+//         if (/Android/.test(window.navigator.appVersion)) {
+//             document.activeElement.scrollIntoViewIfNeeded();                
+//         }
+//     }
+// }
+
 function positionModal ($modal) {
     const $modalContent = $($modal.find(modalContentClassName)[0]);
-
     $body.removeClass('fixed');
-    $body.css('top', 'auto');  
-    $modalContent.css('max-height', 'none'); 
+    $body.css('top', 'auto');
+    $modalContent.css('max-height', 'none');
     $modalContent.removeClass(scrollClassName);
-    $modal.css('top', 0);
-    $modal.css('left', 0);
+    $modal.css('top',0);
+    $modal.css('left',0);
+    const vPort = getViewportDimensions()();
+    const modalHeight = $modal.outerHeight(true),
+        modalWidth = $modal.outerWidth(true);
 
-    const { height: viewHeight, width: viewWidth } = getViewportDimensions(window, document);
-    const modalHeight = $modal.outerHeight(true);
-    const modalWidth = $modal.outerWidth(true);
-    
-    if (window.matchMedia('(min-width: 768px)')) {
-        const top = (modalHeight <= viewHeight)
-            ? (((viewHeight - modalHeight) / 2) + $doc.scrollTop()) + 'px'
-            : $window.scrollTop();
-
-        const left = (((viewWidth - modalWidth) / 2) - $modal.offset().left) + 'px';
-
-        $modal.css({ left, top });
-    } else {
-        const footerHeight = (window.matchMedia('(min-height: 321px)'))
-            ? $modal.find(modalFooterClassName).outerHeight(true) || 0
-            : 0;
-
-        const headerHeight = $modal.find(modalHeaderClassName).outerHeight(true) || 0;
-
-        $modalContent
-            .css('max-height', (viewHeight - footerHeight - headerHeight) + 'px')
-            .addClass(scrollClassName);
-
-        $body.addClass('fixed').css('top', ($modal.scrollPosition * -1));
-
-        if (/Android/.test(window.navigator.appVersion)) {
-            document.activeElement.scrollIntoViewIfNeeded();                
+    if (vPort.width > 767) {
+        if (modalHeight <= vPort.innerHeight) {
+            $modal.css('top', (((vPort.innerHeight - modalHeight) / 2) + $doc.scrollTop()) + 'px');
+        } else {
+            $modal.css('top', $(window).scrollTop());
         }
+
+        const left = ((vPort.innerWidth - modalWidth) / 2) - $modal.offset().left;
+        $modal.css('left', left + 'px');
+    } else {
+        const footerHeight = vPort.height < 321 ?
+                                0 :
+                                $modal.find(modalFooterClassName).outerHeight(true) || 0;
+        const headerHeight = $modal.find(modalHeaderClassName).outerHeight(true) || 0;
+        $modalContent
+            .css('max-height', (vPort.innerHeight - footerHeight - headerHeight) + 'px')
+            .addClass(scrollClassName);
+        $body.addClass('fixed').css('top', ($modal.scrollPosition * -1));            
+    }
+    if (/Android/.test(window.navigator.appVersion)) {
+        document.activeElement.scrollIntoViewIfNeeded();
     }
 }
 
@@ -81,16 +117,17 @@ class Unfold {
         this.$modal.scrollPosition = 0;
         this.identifier = elementId;
         this.eventIdentifier = 'unfold_' + elementId;
+        this._callback = noop;
         this.reset();
     }
 
     reset () {
         this.$modal.find(closeModalClassName)
-            .on(`click.${this.eventIdentifier}`, () => this.close());
+            .on(`click.${this.eventIdentifier}`, e => this.close(e));
     }
 
-    close (ev) {
-        if(!this.isOpen()) { return; }
+    close (e) {
+        if (!this.isOpen()) return;
         ensureOverlay().off(`click.${this.eventIdentifier}`);
         ensureOverlay().removeClass(showClassName);
         this.$modal.removeClass(showClassName);
@@ -99,7 +136,7 @@ class Unfold {
             scrollTop: this.$modal.scrollPosition
         }, 0);
         $window.off(`resize.${this.eventIdentifier}`);
-        this._callback(ev);
+        this._callback(e);
     }
 
     open () {
@@ -110,23 +147,30 @@ class Unfold {
 
         $window.on(
             `resize.${this.eventIdentifier}`,
-            debounce(positionModal(this.$modal), 200)
+            debounce(() => positionModal(this.$modal), 200)
         );
 
         positionModal(this.$modal);
 
         setTimeout(() => {
-            ensureOverlay().on(`click.${this.eventIdentifier}`, () => this.close());
+            $doc.on(`keyup.${this.eventIdentifier}`, e => this.closeOnEscapeKey(e));
+            ensureOverlay().on(`click.${this.eventIdentifier}`, e => this.close(e));
         }, 1);
     }
 
     onClose (callback) {
-        if (!isFunction(callback)) callback = noop;
+        if (!isFunction(callback)) return;
         this._callback = callback;
     }
 
     isOpen () {
         return this.$modal.hasClass(showClassName);
+    }
+
+    closeOnEscapeKey (e) {
+        const escapeKeyCode = 27;
+        if (e.keyCode !== escapeKeyCode) return;
+        this.close(e);
     }
 
     destroy () {
