@@ -87,7 +87,8 @@ class Unfold {
         this.$modal.scrollPosition = 0;
         this.identifier = elementId;
         this.eventIdentifier = 'unfold_' + elementId;
-        this._callback = noop;
+        this._handleOpen = noop;
+        this._handleClose = noop;
         this.reset();
     }
 
@@ -106,7 +107,7 @@ class Unfold {
             scrollTop: this.$modal.scrollPosition
         }, 0);
         $window.off(`resize.${this.eventIdentifier}`);
-        this._callback(e);
+        this._handleClose(e);
     }
 
     open () {
@@ -122,15 +123,22 @@ class Unfold {
 
         positionModal(this.$modal);
 
+        this._handleOpen(this.$modal[0]);
+
         setTimeout(() => {
             $doc.on(`keyup.${this.eventIdentifier}`, e => this.closeOnEscapeKey(e));
             ensureOverlay().on(`click.${this.eventIdentifier}`, e => this.close(e));
         }, 1);
     }
 
+    onOpen (callback) {
+        if (!isFunction(callback)) return;
+        this._handleOpen = callback;
+    }
+
     onClose (callback) {
         if (!isFunction(callback)) return;
-        this._callback = callback;
+        this._handleClose = callback;
     }
 
     isOpen () {
