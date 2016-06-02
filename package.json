@@ -1,6 +1,6 @@
 {
   "name": "unfold-modal",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Modal dialog for UI",
   "main": "lib/index.js",
   "files": [
