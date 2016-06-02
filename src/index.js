@@ -102,7 +102,7 @@ class Unfold {
         ensureOverlay().off(`click.${this.eventIdentifier}`);
         ensureOverlay().removeClass(showClassName);
         this.$modal.removeClass(showClassName);
-        $body.removeClass('fixed').css('top', 'auto');
+        $body.removeClass(bodyActiveClassName).css('top', 'auto');
         $('body, html').animate({
             scrollTop: this.$modal.scrollPosition
         }, 0);
