@@ -8,89 +8,59 @@ const $body = $(document.body);
 const modalDataAttr = 'umodal-id';
 const triggerDataAttr = `[data-${modalDataAttr}]`;
 const modalContentClassName = '.unfoldModal-content';
-const modalFooterClassName = '.unfoldModal-footer';
+const modalFooterClassName = '.unfoldModal-actionBar';
 const modalHeaderClassName = '.unfoldModal-header';
 const overlayClassName = '.unfoldModal-overlay';
 const scrollClassName = 'unfoldModal-content--scroll';
 const showClassName = 'is-visible';
+const bodyActiveClassName = 'is-modalActive';
 const closeModalClassName = '.close-modal';
 let $overlay;
 
 const noop = () => undefined;
 const isFunction = fn => typeof fn === 'function';
 
-// function positionModal ($modal) {
-//     const $modalContent = $($modal.find(modalContentClassName)[0]);
-
-//     $body.removeClass('fixed');
-//     $body.css('top', 'auto');  
-//     $modalContent.css('max-height', 'none'); 
-//     $modalContent.removeClass(scrollClassName);
-//     $modal.css('top', 0);
-//     $modal.css('left', 0);
-
-//     const { height: viewHeight, width: viewWidth } = getViewportDimensions(window, document);
-//     const modalHeight = $modal.outerHeight(true);
-//     const modalWidth = $modal.outerWidth(true);
-    
-//     if (window.matchMedia('(min-width: 768px)')) {
-//         const top = (modalHeight <= viewHeight)
-//             ? (((viewHeight - modalHeight) / 2) + $doc.scrollTop()) + 'px'
-//             : $window.scrollTop();
-
-//         const left = (((viewWidth - modalWidth) / 2) - $modal.offset().left) + 'px';
-
-//         $modal.css({ left, top });
-//     } else {
-//         const footerHeight = (window.matchMedia('(min-height: 321px)'))
-//             ? $modal.find(modalFooterClassName).outerHeight(true) || 0
-//             : 0;
-
-//         const headerHeight = $modal.find(modalHeaderClassName).outerHeight(true) || 0;
-
-//         $modalContent
-//             .css('max-height', (viewHeight - footerHeight - headerHeight) + 'px')
-//             .addClass(scrollClassName);
-
-//         $body.addClass('fixed').css('top', ($modal.scrollPosition * -1));
-
-//         if (/Android/.test(window.navigator.appVersion)) {
-//             document.activeElement.scrollIntoViewIfNeeded();                
-//         }
-//     }
-// }
-
 function positionModal ($modal) {
-    const $modalContent = $($modal.find(modalContentClassName)[0]);
-    $body.removeClass('fixed');
+    const $modalContent = $modal.find(modalContentClassName).first();
+
+    $body.removeClass(bodyActiveClassName);
     $body.css('top', 'auto');
     $modalContent.css('max-height', 'none');
     $modalContent.removeClass(scrollClassName);
-    $modal.css('top',0);
-    $modal.css('left',0);
+    $modal.css('top', 0);
+    $modal.css('left', 0);
+
     const vPort = getViewportDimensions()();
-    const modalHeight = $modal.outerHeight(true),
-        modalWidth = $modal.outerWidth(true);
+    const modalHeight = $modal.outerHeight(true);
+    const modalWidth = $modal.outerWidth(true);
 
-    if (vPort.width > 767) {
-        if (modalHeight <= vPort.innerHeight) {
-            $modal.css('top', (((vPort.innerHeight - modalHeight) / 2) + $doc.scrollTop()) + 'px');
-        } else {
-            $modal.css('top', $(window).scrollTop());
-        }
+    // For desktop and tablet, center the modal both horizontally and vertically
+    if (window.matchMedia('(min-width: 768px)').matches) {
+        const top = (modalHeight <= vPort.innerHeight)
+            ? (((vPort.innerHeight - modalHeight) / 2) + $doc.scrollTop()) + 'px'
+            : $window.scrollTop();
 
-        const left = ((vPort.innerWidth - modalWidth) / 2) - $modal.offset().left;
-        $modal.css('left', left + 'px');
+        const left = (((vPort.innerWidth - modalWidth) / 2) - $modal.offset().left) + 'px';
+
+        $modal.css({ top, left });
+
+    // For mobile screens, center the modal horizontally and align to the top of the viewport
     } else {
-        const footerHeight = vPort.height < 321 ?
-                                0 :
-                                $modal.find(modalFooterClassName).outerHeight(true) || 0;
+        const footerHeight = (window.matchMedia('(min-height: 321px)').matches)
+            ? 0
+            : $modal.find(modalFooterClassName).outerHeight(true) || 0;
+
         const headerHeight = $modal.find(modalHeaderClassName).outerHeight(true) || 0;
+
         $modalContent
             .css('max-height', (vPort.innerHeight - footerHeight - headerHeight) + 'px')
             .addClass(scrollClassName);
-        $body.addClass('fixed').css('top', ($modal.scrollPosition * -1));            
+            
+        $body.css('top', ($modal.scrollPosition * -1));
     }
+
+    $body.addClass(bodyActiveClassName);
+
     if (/Android/.test(window.navigator.appVersion)) {
         document.activeElement.scrollIntoViewIfNeeded();
     }
